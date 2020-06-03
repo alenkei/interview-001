@@ -15,6 +15,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -30,15 +31,6 @@ public class ServiceEndpointResource {
     // see application.properties
     @ConfigProperty(name = "file.upload.path")
     String uploadFolder;
-
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("hello")
-    public String hello() {
-        // TODO why the hell is demo code still here
-        return "hello";
-    }
-
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -82,17 +74,12 @@ public class ServiceEndpointResource {
     }
 
 
+    @Transactional
     public void save(byte[] bytes, String fileName) {
-        // FIXME does not work, throws weird exception
         ImportLogEntity importLogEntity = new ImportLogEntity().setFileName(fileName).setSize(bytes.length).setImportTime(LocalDateTime.now());
 
-        // TODO make sure that the bytes are ready as UTF-8
-        String csv = new String(bytes);
-
-        for(int i =0;i<parseCsv(csv).size();i++){
-            // Here i add a value of the parsed csv
-            importLogEntity.getData().add(parseCsv(csv).get(i));
-        }
+        String csv = new String(bytes, StandardCharsets.UTF_8);
+        importLogEntity.setData(parseCsv(csv));
         importLogEntity.persist();
     }
 
@@ -105,6 +92,28 @@ public class ServiceEndpointResource {
     }
 
     private List<ReportDataEntity> parseCsv(String reportCsv){
-        throw new UnsupportedOperationException();
+        List<ReportDataEntity> result = new ArrayList<>();
+        String[] csvLines = reportCsv
+                .replace("\"", "")
+                .replace("$", "")
+                .replace("€", "")
+                .replace("¥", "")
+                .replace("£", "")
+                .split("\n");
+        for (int i=1; i<csvLines.length; i++) {
+            String[] fields = csvLines[i].split(",");
+            result.add(new ReportDataEntity()
+                    .setId(Long.parseLong(fields[0]))
+                    .setFirstName(fields[1])
+                    .setLastName(fields[2])
+                    .setEmailAddress((fields[3]))
+                    .setGender(fields[4])
+                    .setUsdBalance(Double.parseDouble(fields[5]))
+                    .setEurBalance(Double.parseDouble(fields[6]))
+                    .setYenBalance(Double.parseDouble(fields[7]))
+                    .setGbpBalance(Double.parseDouble(fields[8])));
+        }
+
+        return result;
     }
 }
