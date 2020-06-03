@@ -4,6 +4,8 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
@@ -14,13 +16,20 @@ import java.util.List;
 @Table(name = "IMPORT_LOG")
 public class ImportLogEntity extends PanacheEntity {
 
+    @Id
+    @GeneratedValue
+    private Long id;
+
     private LocalDateTime importTime;
 
     private String fileName;
 
     private long size;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<ReportDataEntity> data = new ArrayList<>();
 
     public LocalDateTime getImportTime() {

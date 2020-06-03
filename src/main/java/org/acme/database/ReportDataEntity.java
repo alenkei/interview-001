@@ -1,15 +1,19 @@
 package org.acme.database;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "REPORT_DATA")
 public class ReportDataEntity extends PanacheEntity {
-    private long   id;
+    @Id
+    @GeneratedValue
+    private long id;
+    private long recID;
     private String firstName;
     private String lastName;
     private String emailAddress;
@@ -19,12 +23,12 @@ public class ReportDataEntity extends PanacheEntity {
     private double yenBalance;
     private double gbpBalance;
 
-    public long getId() {
-        return id;
+    public long getRecID() {
+        return recID;
     }
 
-    public ReportDataEntity setId(long id) {
-        this.id = id;
+    public ReportDataEntity setRecID(long id) {
+        this.recID = id;
         return this;
     }
 

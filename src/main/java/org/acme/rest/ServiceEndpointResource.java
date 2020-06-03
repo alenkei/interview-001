@@ -7,6 +7,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -27,10 +29,20 @@ import java.util.List;
  */
 @Path("/service")
 public class ServiceEndpointResource {
+    @Inject
+    EntityManager em;
 
     // see application.properties
     @ConfigProperty(name = "file.upload.path")
     String uploadFolder;
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("hello")
+    public String hello() {
+        // TODO why the hell is demo code still here
+        return "hello";
+    }
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -45,42 +57,13 @@ public class ServiceEndpointResource {
         return "OK";
     }
 
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("uploadImage")
-    @Deprecated
-    public String uploadImage(@MultipartForm ReportUploadRequest data) throws IOException {
-        // FIXME it is depcreated since years we should check a removal of this function
-//        java.nio.file.Path directories = Files.createDirectories(Paths.get(uploadFolder));
-//        byte[] bytes = ByteStreams.toByteArray(data.getFile());
-//        String fileName = FilenameUtils.getName(data.getFileName());
-//        Files.write(directories.resolve(fileName), bytes);
-//        save(bytes, fileName);
-        return "FAILED";
-    }
-
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("uploadTxt")
-    public String uploadTxt(@MultipartForm ReportUploadRequest data) throws IOException {
-        java.nio.file.Path directories = Files.createDirectories(Paths.get(uploadFolder));
-        byte[] bytes = ByteStreams.toByteArray(data.getFile());
-        String fileName = FilenameUtils.getName(data.getFileName());
-        Files.write(directories.resolve(fileName), bytes);
-        save(bytes, fileName);
-        return "OK";
-    }
-
-
     @Transactional
     public void save(byte[] bytes, String fileName) {
         ImportLogEntity importLogEntity = new ImportLogEntity().setFileName(fileName).setSize(bytes.length).setImportTime(LocalDateTime.now());
 
         String csv = new String(bytes, StandardCharsets.UTF_8);
         importLogEntity.setData(parseCsv(csv));
-        importLogEntity.persist();
+        em.persist(importLogEntity);
     }
 
     @Transactional
@@ -100,10 +83,11 @@ public class ServiceEndpointResource {
                 .replace("¥", "")
                 .replace("£", "")
                 .split("\n");
+        ReportDataEntity tmpEntity;
         for (int i=1; i<csvLines.length; i++) {
             String[] fields = csvLines[i].split(",");
-            result.add(new ReportDataEntity()
-                    .setId(Long.parseLong(fields[0]))
+            tmpEntity = new ReportDataEntity()
+                    .setRecID(Long.parseLong(fields[0]))
                     .setFirstName(fields[1])
                     .setLastName(fields[2])
                     .setEmailAddress((fields[3]))
@@ -111,7 +95,8 @@ public class ServiceEndpointResource {
                     .setUsdBalance(Double.parseDouble(fields[5]))
                     .setEurBalance(Double.parseDouble(fields[6]))
                     .setYenBalance(Double.parseDouble(fields[7]))
-                    .setGbpBalance(Double.parseDouble(fields[8])));
+                    .setGbpBalance(Double.parseDouble(fields[8]));
+            result.add(tmpEntity);
         }
 
         return result;
