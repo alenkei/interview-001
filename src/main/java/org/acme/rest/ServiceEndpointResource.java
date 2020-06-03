@@ -36,14 +36,6 @@ public class ServiceEndpointResource {
     @ConfigProperty(name = "file.upload.path")
     String uploadFolder;
 
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("hello")
-    public String hello() {
-        // TODO why the hell is demo code still here
-        return "hello";
-    }
-
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
