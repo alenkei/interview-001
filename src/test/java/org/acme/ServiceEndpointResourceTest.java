@@ -21,4 +21,23 @@ public class ServiceEndpointResourceTest {
                 .statusCode(200)
                 .body(is("OK"));
     }
+
+    @Test
+    public void testGetRecordEndpoint() {
+        given()
+                .pathParam("recID", 1)
+                .when().get("/service/records/{recID}")
+                .then()
+                .statusCode(200)
+                .body(is("ReportDataEntity{id=1, recID=1, firstName='Andi', lastName='Eldon', emailAddress='aeldon0@prweb.com', gender='Female', usdBalance=81.34, eurBalance=966.0, yenBalance=84.0, gbpBalance=279.0}"));
+    }
+
+    @Test
+    public void testGetAllEndpoint() {
+        given()
+                .when().get("/service/records")
+                .then()
+                .statusCode(200);
+    }
+
 }
