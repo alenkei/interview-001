@@ -31,9 +31,6 @@ import java.util.Optional;
  */
 @Path("/service")
 public class ServiceEndpointResource {
-    @Inject
-    EntityManager em;
-
     // see application.properties
     @ConfigProperty(name = "file.upload.path")
     String uploadFolder;
@@ -77,7 +74,7 @@ public class ServiceEndpointResource {
 
         String csv = new String(bytes, StandardCharsets.UTF_8);
         importLogEntity.setData(parseCsv(csv));
-        em.persist(importLogEntity);
+        importLogEntity.persist();
     }
 
     @Transactional
