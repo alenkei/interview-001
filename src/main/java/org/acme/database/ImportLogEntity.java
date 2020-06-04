@@ -15,11 +15,6 @@ import java.util.List;
 @Entity
 @Table(name = "IMPORT_LOG")
 public class ImportLogEntity extends PanacheEntity {
-
-    @Id
-    @GeneratedValue
-    private Long id;
-
     private LocalDateTime importTime;
 
     private String fileName;

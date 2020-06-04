@@ -6,13 +6,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "REPORT_DATA")
 public class ReportDataEntity extends PanacheEntity {
-    @Id
-    @GeneratedValue
-    private long id;
     private long recID;
     private String firstName;
     private String lastName;
@@ -102,5 +101,29 @@ public class ReportDataEntity extends PanacheEntity {
     public ReportDataEntity setGbpBalance(double gbpBallance) {
         this.gbpBalance = gbpBallance;
         return this;
+    }
+
+    public static Optional<ReportDataEntity> findByRecID(Long recID) {
+        return find("recID", recID.longValue()).firstResultOptional();
+    }
+
+    public static Optional<List<ReportDataEntity>> getAll() {
+        return Optional.of(listAll());
+    }
+
+    @Override
+    public String toString() {
+        return "ReportDataEntity{" +
+                "id=" + id +
+                ", recID=" + recID +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", emailAddress='" + emailAddress + '\'' +
+                ", gender='" + gender + '\'' +
+                ", usdBalance=" + usdBalance +
+                ", eurBalance=" + eurBalance +
+                ", yenBalance=" + yenBalance +
+                ", gbpBalance=" + gbpBalance +
+                '}';
     }
 }

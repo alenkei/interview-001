@@ -5,6 +5,7 @@ import org.acme.database.ImportLogEntity;
 import org.acme.database.ReportDataEntity;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 
 import javax.inject.Inject;
@@ -23,6 +24,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This is the rest service endpoint of the application
@@ -35,6 +37,26 @@ public class ServiceEndpointResource {
     // see application.properties
     @ConfigProperty(name = "file.upload.path")
     String uploadFolder;
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+//    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/records/{recID}")
+    public String getRecord(@PathParam Long recID) {
+        Optional<ReportDataEntity> record = ReportDataEntity.findByRecID(recID);
+
+        return record.get().toString();
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+//    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/records")
+    public String getAll(@PathParam Long recID) {
+        Optional<List<ReportDataEntity>> records = ReportDataEntity.getAll();
+
+        return records.get().toString();
+    }
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -88,6 +110,7 @@ public class ServiceEndpointResource {
                     .setEurBalance(Double.parseDouble(fields[6]))
                     .setYenBalance(Double.parseDouble(fields[7]))
                     .setGbpBalance(Double.parseDouble(fields[8]));
+            tmpEntity.persist();
             result.add(tmpEntity);
         }
 
