@@ -18,8 +18,7 @@ public class ServiceEndpointResourceTest {
                 .formParam("fileName", "report_1.csv")
                 .when().post("/service/uploadReport")
                 .then()
-                .statusCode(200)
-                .body(is("OK"));
+                .statusCode(200);
     }
 
     @Test
@@ -36,6 +35,15 @@ public class ServiceEndpointResourceTest {
     public void testGetAllEndpoint() {
         given()
                 .when().get("/service/records")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
+    public void testDeleteReport() {
+        given()
+                .pathParam("reportID", 1001)
+                .when().delete("/service/deleteReport/{reportID}")
                 .then()
                 .statusCode(200);
     }

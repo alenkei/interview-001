@@ -1,6 +1,5 @@
 package org.acme.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteStreams;
 import org.acme.database.ImportLogEntity;
@@ -10,10 +9,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -57,7 +55,6 @@ public class ServiceEndpointResource {
         catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-
         json += "]";
 
         return Response.ok(json).build();
@@ -66,7 +63,7 @@ public class ServiceEndpointResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/records")
-    public Response getAll(@PathParam Long recID) {
+    public Response getAll() {
         String json = "[";
 
         try {
@@ -98,31 +95,59 @@ public class ServiceEndpointResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    @Path("uploadReport")
-    public String uploadReport(@MultipartForm ReportUploadRequest data) throws IOException {
-        java.nio.file.Path directories = Files.createDirectories(Paths.get(uploadFolder));
-        byte[] bytes = ByteStreams.toByteArray(data.getFile());
-        String fileName = FilenameUtils.getName(data.getFileName());
-        Files.write(directories.resolve(fileName), bytes);
-        save(bytes, fileName);
-        return "OK";
+    @Path("/uploadReport")
+    public Response uploadReport(@MultipartForm ReportUploadRequest data) throws IOException {
+        Long id;
+        try {
+            java.nio.file.Path directories = Files.createDirectories(Paths.get(uploadFolder));
+            byte[] bytes = ByteStreams.toByteArray(data.getFile());
+            String fileName = FilenameUtils.getName(data.getFileName());
+            Files.write(directories.resolve(fileName), bytes);
+            id = save(bytes, fileName);
+        }
+        catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return Response.ok(id.toString()).build();
+    }
+
+    @DELETE
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("/deleteReport/{reportID}")
+    public Response deleteReport(@PathParam Long reportID) {
+        try {
+            if (!delete(reportID)) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+        }
+        catch (Exception e){
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return Response.ok("Deleted!").build();
     }
 
     @Transactional
-    public void save(byte[] bytes, String fileName) {
+    public Long save(byte[] bytes, String fileName) {
         ImportLogEntity importLogEntity = new ImportLogEntity().setFileName(fileName).setSize(bytes.length).setImportTime(LocalDateTime.now());
 
         String csv = new String(bytes, StandardCharsets.UTF_8);
         importLogEntity.setData(parseCsv(csv));
         importLogEntity.persist();
+        return importLogEntity.id;
     }
 
     @Transactional
-    public void delete(ImportLogEntity importLogEntity) {
-        // TODO check if null
+    public boolean delete(Long id) {
+        ImportLogEntity importLogEntity = ImportLogEntity.findById(id);
 
-        // delete the entity
-        importLogEntity.delete();
+        if (null != importLogEntity) {
+            importLogEntity.delete();
+            return true;
+        }
+
+        return false;
     }
 
     private List<ReportDataEntity> parseCsv(String reportCsv){

@@ -39,6 +39,54 @@
                     }
                 });
             })
+            $('#delete-btn').click((event) => {
+                //stop submit the form, we will post it manually.
+                event.preventDefault();
+
+                $.ajax({
+                    type: "DELETE",
+                    // SET URL FOR REST SERVICE HERE
+                    url: "service/deleteReport/" + $("#reportID").val(),
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    timeout: 600000,
+                    success: function (data) {
+                        $("#result").text(data);
+                        console.log("SUCCESS : ", data);
+                        $("#btnSubmit").prop("disabled", false);
+                    },
+                    error: function (e) {
+                        $("#result").text(e.responseText);
+                        console.log("ERROR : ", e);
+                        $("#btnSubmit").prop("disabled", false);
+                    }
+                });
+            })
+            $('#getRecords-btn').click((event) => {
+                //stop submit the form, we will post it manually.
+                event.preventDefault();
+
+                $.ajax({
+                    type: "GET",
+                    // SET URL FOR REST SERVICE HERE
+                    url: "service/records",
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    timeout: 600000,
+                    success: function (data) {
+                        $("#result").text(data);
+                        console.log("SUCCESS : ", data);
+                        $("#btnSubmit").prop("disabled", false);
+                    },
+                    error: function (e) {
+                        $("#result").text(e.responseText);
+                        console.log("ERROR : ", e);
+                        $("#btnSubmit").prop("disabled", false);
+                    }
+                });
+            })
         });
     </script>
 </head>
@@ -65,6 +113,18 @@
                         else.</small>
                 </div>
                 <input class="btn btn-primary" id="upload-btn" type="submit" value="Submit">
+                <div class="form-group">
+                    <br />
+                    <h1>Delete Report</h1>
+                    <label for="reportID">Report ID</label>
+                    <input type="text" class="form-control" id="reportID">
+                </div>
+                <input class="btn btn-primary" id="delete-btn" type="submit" value="Delete">
+                <div class="form-group">
+                    <br />
+                    <h1>Get records</h1>
+                </div>
+                <input class="btn btn-primary" id="getRecords-btn" type="submit" value="Get records">
             </form>
         </div>
     </div>
