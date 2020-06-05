@@ -1,5 +1,7 @@
 package org.acme.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteStreams;
 import org.acme.database.ImportLogEntity;
 import org.acme.database.ReportDataEntity;
@@ -17,6 +19,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -36,23 +39,60 @@ public class ServiceEndpointResource {
     String uploadFolder;
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-//    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/records/{recID}")
-    public String getRecord(@PathParam Long recID) {
-        Optional<ReportDataEntity> record = ReportDataEntity.findByRecID(recID);
+    public Response getRecord(@PathParam Long recID) {
+        String json = "[";
 
-        return record.get().toString();
+        try {
+            Optional<ReportDataEntity> record = ReportDataEntity.findByRecID(recID);
+
+            if (record.isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            json += mapper.writeValueAsString(record.get());
+        }
+        catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+        json += "]";
+
+        return Response.ok(json).build();
     }
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-//    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/records")
-    public String getAll(@PathParam Long recID) {
-        Optional<List<ReportDataEntity>> records = ReportDataEntity.getAll();
+    public Response getAll(@PathParam Long recID) {
+        String json = "[";
 
-        return records.get().toString();
+        try {
+            Optional<List<ReportDataEntity>> records = ReportDataEntity.getAll();
+
+            if (records.isEmpty() || records.get().isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            var first = true;
+            for (var record: records.get()) {
+                if (!first) {
+                    json += ",";
+                } else {
+                    first = false;
+                }
+                json += mapper.writeValueAsString(record);
+            }
+        }
+        catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+        json += "]";
+
+        return Response.ok(json).build();
     }
 
     @POST
