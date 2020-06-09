@@ -117,7 +117,7 @@ public class ServiceEndpointResource {
     @Path("/deleteReport/{reportID}")
     public Response deleteReport(@PathParam Long reportID) {
         try {
-            if (!delete(reportID)) {
+            if (null == reportID || !delete(reportID)) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
         }
